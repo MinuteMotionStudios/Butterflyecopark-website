@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit a Review</title>
+</head>
+<body>
+    <h1>Submit a Review</h1>
+    <form id="reviewForm">
+        <textarea id="reviewText" placeholder="Write your review here..." required></textarea>
+        <button type="submit">Submit Review</button>
+    </form>
+
+    <h2>Reviews</h2>
+    <div id="reviewsContainer"></div>
+
+    <script>
+        const reviewForm = document.getElementById('reviewForm');
+
+        // Submit a review
+        reviewForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const reviewText = document.getElementById('reviewText').value;
+
+            // Send the review to the Google Apps Script web app
+            const response = await fetch('https://script.google.com/macros/s/AKfycbzo6c7n_wTC1wX0kk4ais0dD-JerfXjmXaf0MrId9MblBdqvO5IpgrAkouhiM-W9mmsPA/exec', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ reviewText }),
+            });
+
+            const result = await response.text();
+            alert(result); // Show success message
+            document.getElementById('reviewText').value = ''; // Clear the input
+            fetchReviews(); // Refresh the reviews
+        });
+
+        // Fetch and display reviews
+        async function fetchReviews() {
+            const response = await fetch('https://sheets.googleapis.com/v4/spreadsheets/https://docs.google.com/spreadsheets/d/17AtOD0iypc2eKGiM5nble25AvecnUB099V96fCSqU14/edit?usp=sharing/values/Sheet1?key=AIzaSyBDQcShfsAtZGjwU_dY0GNavxqyYUqkWWE');
+            const data = await response.json();
+            const reviewsContainer = document.getElementById('reviewsContainer');
+            reviewsContainer.innerHTML = data.values.slice(1).map(row => `<p>${row[1]} (Submitted on: ${row[2]})</p>`).join('');
+        }
+
+        // Initial fetch of reviews
+        fetchReviews();
+    </script>
+</body>
+</html>
